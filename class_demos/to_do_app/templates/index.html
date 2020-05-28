@@ -9,7 +9,7 @@
         list-style: none;
         padding: 0;
         margin: 0;
-        width: 300px;
+        width: 200px;
       }
       li {
         clear: both;
@@ -50,11 +50,24 @@
       <ul id='todos'>
         {% for d in data %}
         <li>
-          <input class="check-completed" data-id="{{ d.id }}" type="checkbox" {% if d.completed %} checked {% endif %} />{{ d.description }}</li>
+          <input class="check-completed" data-id="{{ d.id }}" type="checkbox" {% if d.completed %} checked {% endif %} />
+          {{ d.description }}
+          <button class="delete-button" data-id="{{ d.id }}">&cross;</button>
+        </li>
         {% endfor %}
       </ul>
     </div>
     <script>
+      const deleteButtons = document.querySelectorAll('.delete-button');
+      for (let i = 0; i < deleteButtons.length; i++) {
+        const deleteButton = deleteButtons[i];
+        deleteButton.onclick = function(e) {
+          const todoId = e.target.dataset['id'];
+          fetch('/todos/' + todoId, {
+            method: 'DELETE',
+          });
+        }
+      }
       const checkboxes = document.querySelectorAll('.check-completed');
       for (let i = 0; i < checkboxes.length; i++) {
         const checkbox = checkboxes[i];
