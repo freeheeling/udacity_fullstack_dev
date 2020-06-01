@@ -8,6 +8,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://scottregenthal@localhost:5
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+class TodoList(db.Model):
+    __tablename__ = 'todolists'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
+    todos = db.relationship('Todo', backref='list', lazy=True)
+
 class Todo(db.Model):
     __tablename__ = 'todos'
     id = db.Column(db.Integer, primary_key=True)
@@ -18,11 +24,24 @@ class Todo(db.Model):
     def __repr__(self):
         return f'<Todo {self.id}, {self.description}'
 
-class TodoList(db.Model):
-    __tablename__ = 'todolists'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(), nullable=False)
-    todos = db.relationship('Todo', backref='list', lazy=True)
+@app.route('/lists/create', methods=['POST'])
+def create_list():
+    error = False
+    body = {}
+    try:
+        name = request.get_json()['name']
+        list = TodoList(name=name)
+        db.session.add(list)
+        db.session.commit()
+        body['name'] = list.name
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+    if not error:
+        return jsonify(body)
 
 @app.route('/todos/create', methods=['POST'])
 def create_todo():
@@ -32,7 +51,7 @@ def create_todo():
         description = request.get_json()['description']
         todo = Todo(description=description)
         db.session.add(todo)
-        db.session.commit ()
+        db.session.commit()
         body['description'] = todo.description
     except:
         error = True

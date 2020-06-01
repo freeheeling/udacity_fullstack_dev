@@ -33,12 +33,14 @@
   </head>
   <body>
     <div class="lists-wrapper">
+      <form id="form-list">
+        <input id="name" type="text" name="name" />
+        <input type="submit" value="Create" />
+      </form>
       <ul id="lists">
         {%  for list in lists %}
         <li>
-          <a href="/lists/{{ list.id }}">
-            {{ list.name }}
-          </a>
+          <a href="/lists/{{ list.id }}">{{ list.name }}</a>
         </li>
         {% endfor %}
       </ul>
@@ -101,6 +103,30 @@
             })
           }
         }
+      document.getElementById("form-list").onsubmit = function(e) {
+        e.preventDefault();
+        fetch('/lists/create', {
+          method: 'POST',
+          body: JSON.stringify({
+            "name": document.getElementById("name").value
+          }),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(jsonResponse) {
+          const liListItem = document.createElement("LIList");
+          liListItem.innerHTML = jsonResponse["name"];
+          document.getElementById("lists").appendChild(liListItem);
+          document.getElementById("error").className = "hidden";
+        })
+        .catch(function() {
+          document.getElementById("error").className = "";
+        })
+      }
       document.getElementById("form").onsubmit = function(e) {
         e.preventDefault();
         fetch('/todos/create', {
