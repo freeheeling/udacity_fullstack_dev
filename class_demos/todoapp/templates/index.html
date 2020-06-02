@@ -51,7 +51,7 @@
     <div class="todos-wrapper">
       <h4>{{ active_list.name }} Tasks</h4>
       <form id="form-todo">
-        <input id="list_id" type="hidden" value="{{ active_list.id }}">
+        <input id="list_id" type="hidden" value="{{ active_list.id }}" />
         <input id="description" type="text" name="description" />
         <input type="submit" value="Create" />
       </form>
@@ -69,6 +69,7 @@
       </ul>
     </div>
     <script>
+      let deleteButtons;
       const listCheckboxes = document.querySelectorAll('.check-completed-list');
       for (let i = 0; i < listCheckboxes.length; i++) {
         const listCheckbox = listCheckboxes[i];
@@ -118,25 +119,43 @@
           });
         }
       }
-      const deleteButtons = document.querySelectorAll('.delete-todo');
-        for (let i = 0; i < deleteButtons.length; i++) {
-          const button = deleteButtons[i];
-          button.onclick = function(e) {
-            const todoId = e.target.dataset.id;
-            fetch('/todos/' + todoId + '/delete', {
-              method: 'DELETE'
-            })
-            .then(function() {
-              // console.log('event', e);
-              const item = e.target.parentElement;
-              item.remove();
-              document.getElementById('error').className = "hidden";
-            })
-            .catch(function() {
-              document.getElementById('error').className = "";
-            });
-          };
-        }
+      deleteButtons = document.querySelectorAll('.delete-todo');
+      for (let i = 0; i < deleteButtons.length; i++) {
+        const deleteButton = deleteButtons[i];
+        deleteButton.onclick = function(e) {
+          const todoId = e.target.dataset.id;
+          fetch('/todos/' + todoId + '/delete', {
+            method: 'DELETE'
+          })
+          .then(function() {
+            // console.log('event', e);
+            const item = e.target.parentElement;
+            item.remove();
+            document.getElementById('error').className = "hidden";
+          })
+          .catch(function() {
+            document.getElementById('error').className = "";
+          });
+        };
+      }
+      deleteListButtons = document.querySelectorAll(".delete-list");
+      for (let i = 0; i < deleteListButtons.length; i++) {
+        const deleteButton = deleteListButtons[i];
+        deleteButton.onclick = function(e) {
+          const listId = e.target.dataset.id;
+          fetch('/lists/' + listId + '/delete', {
+            method: 'DELETE'
+          })
+          .then(function() {
+            const item = e.target.parentElement;
+            item.remove();
+            document.getElementById("error").className = "hidden";
+          })
+          .catch(function() {
+            document.getElementById("error").className = "";
+          });
+        };
+      }
       document.getElementById("form-list").onsubmit = function(e) {
         e.preventDefault();
         fetch('/lists/create', {
@@ -156,6 +175,7 @@
           liListItem.innerHTML = jsonResponse["name"];
           document.getElementById("lists").appendChild(liListItem);
           document.getElementById("error").className = "hidden";
+          window.location.reload(true);
         })
         .catch(function() {
           document.getElementById("error").className = "";
@@ -166,7 +186,8 @@
         fetch('/todos/create', {
           method: 'POST',
           body: JSON.stringify({
-            "description": document.getElementById("description").value
+            "description": document.getElementById("description").value,
+            "list-id": document.getElementById("list_id").value
           }),
           headers: {
             "Content-Type": "application/json"
@@ -180,6 +201,7 @@
           liItem.innerHTML = jsonResponse["description"];
           document.getElementById("todos").appendChild(liItem);
           document.getElementById("error").className = "hidden";
+          window.location.reload(true);
         })
         .catch(function() {
           document.getElementById("error").className = "";
